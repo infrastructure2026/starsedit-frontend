@@ -1,0 +1,39 @@
+---
+// src/pages/[slug].astro
+
+// 1. Grab the URL slug (e.g., /system-check-fort-knox)
+const { slug } = Astro.params;
+
+// 2. Query the Cloudflare D1 Database at the Edge
+const db = Astro.locals.runtime.env.DB;
+const stmt = db.prepare('SELECT * FROM articles WHERE slug = ?').bind(slug);
+const { results } = await stmt.all();
+
+const article = results[0];
+
+// 3. If the article doesn't exist, throw a 404
+if (!article) {
+  return Astro.redirect('/404');
+}
+---
+
+<html lang="en">
+  <head>
+    <title>{article.title} | Stars Edit</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #000; color: #fff; }
+      h1 { color: #d4af37; } /* Edit Empire Gold */
+      .meta { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; }
+    </style>
+  </head>
+  <body>
+    <h1>{article.title}</h1>
+    <div class="meta">
+      By {article.author} | Category: {article.vertical}
+    </div>
+    
+    <article>
+      {article.content}
+    </article>
+  </body>
+</html>
